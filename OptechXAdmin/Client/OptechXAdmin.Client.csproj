@@ -21,4 +21,10 @@
     <ProjectReference Include="..\Shared\OptechXAdmin.Shared.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Remove="wwwroot\icons\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="wwwroot\icons\" />
+  </ItemGroup>
 </Project>
