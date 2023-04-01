@@ -1,0 +1,45 @@
+﻿@page "/msp-login"
+@using OptechXAdmin.Shared.Classes.MSP;
+
+@if (isAuthenticated)
+{
+        <h3>Welcome, @user.Username</h3>
+}
+else
+{
+    <div class="container d-flex justify-content-center align-items-center h-100">
+        <div class="p-4 border rounded shadow">
+            <h3 class="text-center">MSP Login</h3>
+            <hr />
+            <EditForm Model="@user" OnValidSubmit="@HandleLogin">
+                <DataAnnotationsValidator></DataAnnotationsValidator>
+                <div class="form-group mb-3">
+                    <label for="username">Username</label>
+                    <InputText class="form-control" id="username" @bind-Value="user.Username" />
+                </div>
+                <div class="form-group mb-3">
+                    <label for="password">Password</label>
+                    <InputText class="form-control" id="password" @bind-Value="user.Password" type="password" />
+                </div>
+                <button type="submit" class="btn btn-primary btn-block">Sign In</button>
+                <ValidationSummary />
+            </EditForm>
+        </div>
+    </div>
+}
+
+
+
+@code {
+    bool isAuthenticated = false;
+
+    private MSPLogin user = new MSPLogin();
+
+    private void HandleLogin()
+    {
+        Console.WriteLine($"{user.Username}");
+        Console.WriteLine($"{user.Password}");
+        isAuthenticated = true;
+    }
+}
+

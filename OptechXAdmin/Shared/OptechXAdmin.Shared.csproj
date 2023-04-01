@@ -9,4 +9,12 @@
   <ItemGroup>
     <SupportedPlatform Include="browser" />
   </ItemGroup>
+  <ItemGroup>
+    <None Remove="Classes\" />
+    <None Remove="Classes\MSP\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Classes\" />
+    <Folder Include="Classes\MSP\" />
+  </ItemGroup>
 </Project>

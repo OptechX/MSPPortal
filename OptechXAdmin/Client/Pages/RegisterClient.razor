@@ -1,0 +1,258 @@
+﻿@page "/msp-register-client"
+@using OptechXAdmin.Shared.Classes.MSP;
+@using OptechXAdmin.Shared;
+@using Stripe;
+
+
+<h3>Register Client</h3>
+
+@if (isAuthenticated)
+{
+    <h3>Unable to access page</h3>
+}
+else
+{
+
+    switch (emailIsValidated)
+    {
+        case 8:
+            <div class="d-flex justify-content-center align-items-center" style="height: 100vh;">
+                <div class="alert alert-success" role="alert">
+                    <p>Customer created with ID: <strong>@newCustomerId</strong></p>
+                </div>
+            </div>
+            break;
+
+        case 2:
+            <div class="d-flex justify-content-center align-items-center" style="height: 100vh;">
+                <div class="text-center">
+                    <div class="alert alert-danger" role="alert">
+                        Email address already registered. Contact Support.
+                    </div>
+                </div>
+            </div>
+            break;
+
+        case 9:
+            <div class="d-flex justify-content-center align-items-center" style="height: 100vh;">
+                <div class="text-center">
+                    <p>Checking email address...</p>
+                </div>
+            </div>
+            break;
+
+        case 0:
+            <EditForm Model="@emailValidator" OnValidSubmit="@ValidateEmailAddressAsync">
+                <div class="form-group mb-3">
+                    <label for="validateemail">Validate Email</label>
+                    <InputText id="validateemail" @bind-Value="emailValidator.Email" class="form-control"></InputText>
+                </div>
+                <button type="submit" class="btn btn-primary btn-block">Validate</button>
+            </EditForm>
+            break;
+        case 1:
+            <div class="alert alert-success " role="alert">
+                Success! User has not registered, continue with signup process!
+            </div>
+
+
+            <EditForm Model="@client" OnValidSubmit="@HandleRegistration">
+                <div class="form-group mb-3">
+                    <label for="email">Email Address</label>
+                    <InputText id="email" @bind-Value="client.Email" class="form-control"></InputText>
+                </div>
+                <div class="form-group mb-3">
+                    <label for="mspcode">MSP Code</label>
+                    <InputText id="mspcode" @bind-Value="client.MSPCode" class="form-control"></InputText>
+                </div>
+                <div class="form-group mb-3">
+                    <label for="businessname">Business Name</label>
+                    <InputText id="businessname" @bind-Value="client.BusinessName" class="form-control"></InputText>
+                </div>
+                <div class="form-group mb-3">
+                    <label for="contactname">Contact Name</label>
+                    <InputText id="contactname" @bind-Value="client.ContactName" class="form-control"></InputText>
+                </div>
+                <div class="form-group mb-3">
+                    <label for="name">Tax ID</label>
+                    <InputText id="taxid" @bind-Value="client.TaxId" class="form-control"></InputText>
+                </div>
+                <div class="form-group mb-3">
+                    <label for="phone">Phone</label>
+                    <InputText id="phone" @bind-Value="client.Phone" class="form-control"></InputText>
+                </div>
+                <div class="form-group mb-3">
+                    <label for="addressline1">Address Line 1</label>
+                    <InputText id="addressline1" @bind-Value="client.AddressLine1" class="form-control"></InputText>
+                </div>
+                <div class="form-group mb-3">
+                    <label for="addressline2">Address Line 2</label>
+                    <InputText id="addressline2" @bind-Value="client.AddressLine2" class="form-control"></InputText>
+                </div>
+                <div class="form-group mb-3">
+                    <label for="city">City</label>
+                    <InputText id="city" @bind-Value="client.City" class="form-control"></InputText>
+                </div>
+                <div class="form-group mb-3">
+                    <label for="state">State</label>
+                    <InputText id="state" @bind-Value="client.State" class="form-control"></InputText>
+                </div>
+                <div class="form-group mb-3">
+                    <label for="postcode">Post Code</label>
+                    <InputText id="postcode" @bind-Value="client.PostCode" class="form-control"></InputText>
+                </div>
+                <div class="form-group mb-3">
+                    <label for="country">Country</label>
+                    <InputSelect id="country" @bind-Value="client.Country" class="form-control">
+                        @foreach (var option in countries)
+                        {
+                            <option value="@option">@option</option>
+                        }
+                    </InputSelect>
+                </div>
+                <div class="form-group mb-3">
+                    <label for="plans">Plan Select</label>
+                    <InputSelect id="plans" @bind-Value="client.Plan" class="form-control">
+                        @foreach (var option in plans)
+                        {
+                            <option value="@option">@option</option>
+                        }
+                    </InputSelect>
+                </div>
+                <div class="form-group mb-3">
+                    <label for="trialperioddays">Trial Period</label>
+                    <InputNumber id="trialperioddays" @bind-Value="client.TrialPeriodDays" class="form-control"></InputNumber>
+                </div>
+                <div class="form-group mb-3">
+                    <label for="couponcode">Coupon Code</label>
+                    <InputText id="couponcode" @bind-Value="client.CouponCode" class="form-control"></InputText>
+                </div>
+                <div class="form-group mb-3">
+                    <label for="myCheckbox">Accepted <a href="https://optechx.com/terms-of-service/">Terms &amp; Conditions</a></label>
+                    <InputCheckbox id="termsandconditions" @bind-Value="client.isAcceptTermsConditions"></InputCheckbox>
+                </div>
+                <button type="submit" class="btn btn-primary btn-block">Submit Order</button>
+            </EditForm>
+            break;
+
+        default:
+            break;
+    }
+}
+
+@code {
+    string[] plans = new[] { "Standard", "Professional", "Business", "Enterprise", "Custom" };
+
+    string[] countries = new[] { "AU", "US" };
+
+    bool isAuthenticated = false;
+
+    int emailIsValidated = 0;
+
+    string newCustomerId = string.Empty;
+
+    MSPClientRegister client = new MSPClientRegister();
+
+    MSPEmailValidate emailValidator = new MSPEmailValidate();
+
+    async Task ValidateEmailAddressAsync()
+    {
+        emailIsValidated = 9;
+
+        var found = await SearchCustomerByEmailAsync(emailValidator.Email);
+
+        if (found)
+        {
+            emailIsValidated = 2;
+        }
+        else
+        {
+            emailIsValidated = 1;
+        }
+    }
+
+    async Task HandleRegistration()
+    {
+        MSPClientRegister newClient = new MSPClientRegister
+        {
+            Email = client.Email,
+            MSPCode = client.MSPCode,
+            BusinessName = client.BusinessName,
+            ContactName = client.ContactName,
+            TaxId = client.TaxId,
+            Phone = client.Phone,
+            AddressLine1 = client.AddressLine1,
+            AddressLine2 = client.AddressLine2,
+            City = client.City,
+            State = client.State,
+            PostCode = client.PostCode,
+            Country = client.Country,
+        };
+
+        newCustomerId = await CreateNewCustomerInStripe(newClient: newClient);
+
+        emailIsValidated = 8;
+    }
+
+    static async Task<bool> SearchCustomerByEmailAsync(string email)
+    {
+        StripeConfiguration.ApiKey = "";
+
+        var options = new CustomerSearchOptions
+        {
+            Query = $"email: '{email}'",
+        };
+        var service = new CustomerService();
+        var customer = await service.SearchAsync(options);
+
+        bool result = customer.Any<Stripe.Customer>();
+
+        return result;
+    }
+
+    static async Task<string> CreateNewCustomerInStripe(MSPClientRegister newClient)
+    {
+        StripeConfiguration.ApiKey = "";
+
+        var options = new CustomerCreateOptions
+        {
+            Email = newClient.Email,
+            Description = newClient.MSPCode,
+            Name = newClient.BusinessName,
+            Phone = newClient.Phone,
+            Address = new AddressOptions
+            {
+                Line1 = newClient.AddressLine1,
+                Line2 = newClient.AddressLine2,
+                City = newClient.City,
+                State = newClient.State,
+                PostalCode = newClient.PostCode,
+                Country = newClient.Country
+            },
+            Shipping = new ShippingOptions
+            {
+                Name = newClient.BusinessName,
+                Address = new AddressOptions
+                {
+                    Line1 = newClient.AddressLine1,
+                    Line2 = newClient.AddressLine2,
+                    City = newClient.City,
+                    State = newClient.State,
+                    PostalCode = newClient.PostCode,
+                    Country = newClient.Country
+                },
+                Phone = newClient.Phone
+            },
+            Metadata = new Dictionary<string, string>
+            {
+                { "MSPCode", $"{newClient.MSPCode}" }
+            }
+        };
+
+        var service = new CustomerService();
+        var customer = await service.CreateAsync(options);
+
+        return customer.Id;
+    }
+}
+

@@ -15,6 +15,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="7.0.4" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="7.0.4" PrivateAssets="all" />
+    <PackageReference Include="Stripe.net" Version="41.12.0" />
   </ItemGroup>
 
   <ItemGroup>
@@ -23,6 +24,8 @@
 
   <ItemGroup>
     <Content Remove="wwwroot\icons\" />
+    <Content Remove="Pages\appSettings.json" />
+    <Content Remove="appSettings.json" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="wwwroot\icons\" />
